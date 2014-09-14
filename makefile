@@ -1,0 +1,13 @@
+CC = g++
+CFLAGS = -Wall -g
+
+MCPricer : pricer.o models.o exotics.o mcengine.o  
+	${CC} ${CFLAGS} pricer.o models.o mcengine.o exotics.o -o MCPricer
+pricer.o : pricer.cpp structs.h mcengine.h models.h payoffs.h exotics.h
+	${CC} ${CFLAGS} -c pricer.cpp
+mcengine.o : mcengine.cpp structs.h models.h exotics.h
+	${CC} ${CFLAGS} -c mcengine.cpp
+models.o : models.cpp structs.h mcengine.h
+	${CC} ${CFLAGS} -c models.cpp
+exotics.o : exotics.cpp structs.h
+	${CC} ${CFLAGS} -c exotics.cpp
