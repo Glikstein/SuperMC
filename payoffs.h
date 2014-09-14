@@ -24,9 +24,9 @@ namespace Payoffs
 		return max(K - lastStep.state[0], 0.0);
 	}
 	
-	double VIXcallPayoff(StepData& lastStep)
+	double volBetPayoff(StepData& lastStep)
 	{
-		return max(lastStep.vol - K, 0.0);
+		return lastStep.vol>K?1:0;
 	}
 	
 }

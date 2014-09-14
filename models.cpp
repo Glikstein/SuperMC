@@ -35,7 +35,6 @@ namespace Models
 	 double rho = -0.7 ; // instantaneous correlation of u1 and u2
 	 double kappa = 2; // speed of mean reversion
 	 double theta = 0.03; // long-run average volatility (mean-reversion level)
-	 
 	 StepData& HestonStep(std::vector<double>& randoms, MCEngine& mc)
 	 {
 		 double u1 = randoms[0]; double u2 = randoms[1]; // take the first two random numbers in vector

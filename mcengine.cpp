@@ -4,6 +4,8 @@
 // This file both implements MCEngine and defines various price-path modelling functions
 #include "mcengine.h"
 
+#include "normals.h"
+#include "mrg32k3a.h"
 
 ///////////////////////////////////
 ///// MCEngine IMPLEMENTATION /////
@@ -68,15 +70,19 @@ MCEngine::~MCEngine()
 
 void MCEngine::Simulate()
 {
+
 	using namespace boost::math;
-	
-	// setting up the RNG
+/*	
+	// setting up the RNG using Boost
 
 	boost::mt19937 RNG1;
 	boost::normal_distribution<> normal(0,1);
 	boost::variate_generator<boost::mt19937&, boost::normal_distribution<> > N1	(RNG1, normal);
 
-	RNG1.seed(1203);	// fixed seed to obtain reproducible results
+	RNG1.seed(100488);	// fixed seed to obtain reproducible results
+*/
+	RandomStream UnifStream;	// U(0,1) stream
+	
 
 	std::cout<<"Simulating "<<m_numberofSimulations<<" price paths...\n";
 	
@@ -84,7 +90,7 @@ void MCEngine::Simulate()
 	std::vector<double> randoms;
 	randoms.resize(Models::MAX_RV);
 	for(int r = 0; r < Models::MAX_RV; r++)
-		randoms[r] = N1();
+		randoms[r] = invertNormal(UnifStream.nextVar()); //N1();
 	
 	// simulate!
 	for(long sim = 0; sim < m_numberofSimulations; sim++)
@@ -94,13 +100,15 @@ void MCEngine::Simulate()
 			for(int r = 0; r<Models::MAX_RV; r++)
 			{
 				if(randoms[r] == 0.0) 
-					randoms[r] = N1();	// only generate what you need
-//				std::cout<<"randoms["<<r<<"] = "<<randoms[r]<<'\t';
+					randoms[r] = invertNormal(UnifStream.nextVar()); //N1();	// only generate what you need
+				//std::cout<<"randoms["<<r<<"] = "<<randoms[r]<<'\t';
 			}
-			model(randoms, *this);
-			exotic(m_lastStep);
+			//std::cout<<'\n';
+			model(randoms, *this);	// advance one time unit along the price path
+			exotic(m_lastStep);		// update the state of m_lastStep
 		}
-		double payout = payoff(m_currentStep) * D;
+		// gather staticstics
+		double payout = payoff(m_lastStep) * D;
 		m_sum += payout;
 		m_sqrSum += payout*payout;
 		

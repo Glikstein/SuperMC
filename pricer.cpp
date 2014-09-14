@@ -44,18 +44,20 @@ int main()
 		case 'h':
 			ptrModel = Models::HestonStep; 
 			cout<<"Volatility of volatility: ";cin>>initialStep.volvol;
-			//Models::theta = initialStep.vol; 	// set long-run vol to entered vol
 			break;
 		case 'c':
 			ptrModel = Models::CEVStep; break;
 		default:
 			ptrModel = Models::BrownianStep; break;
 	}
-	cout<<"Exotic? [_v_anilla | _a_rithmetic Asian | etc]";cin>>type;
+	cout<<"Exotic? [_v_anilla | _a_rithmetic Asian | _g_eometric Asian]";cin>>type;
 	switch(type)
 	{
 		case 'a':
-			ptrExotic = Exotics::ArithmeticAvg;initialStep.state.resize(1); goto pc;
+			ptrExotic = Exotics::ArithmeticAvg; initialStep.state.resize(1); goto pc;
+			break;
+		case 'g':
+			ptrExotic = Exotics::GeometricAvg; initialStep.state.resize(1); goto pc;
 			break;
 		case 'v':
 			ptrExotic = Exotics::Vanilla; initialStep.state.resize(1); goto pc;
@@ -75,6 +77,8 @@ int main()
 	
 	initialStep.step_num = 0;
 	std::fill(initialStep.state.begin(), initialStep.state.end(), 0.0);	// fill the state vector with 0's
+	if(ptrExotic == Exotics::GeometricAvg)
+		initialStep.state[0] = 1;	// to avoid taking log of 0
 	MCEngine* testMC = new MCEngine(T, stepnum, simnum, ptrPayoff, ptrModel, ptrExotic, initialStep);
 	testMC->Simulate();
 	cout<<"We find a crude MC estimate for the mean to be: "<<testMC->getMean()<<"+- "<<testMC->getStdDev()<<" for "<<simnum<<" simulations\n";

@@ -1,0 +1,45 @@
+This project is centered around the class MCEngine.
+MCEngine's main method is MCEngine::Simulate() which is a 1-step marching algorithm that 
+generates random numbers and passes them to the chosen model for asset prices. It calculates
+the payoff of a contract and collects statistical information.
+
+MCEngine is,  as the name indicates,  purely an engine. It does not come with any models or payoff functions.
+There are three main namespaces in this project: Models,  Payoffs,  and Exotics. In each of these namespaces
+we find useful functions. MCEngine::Simulate() performs the simulation using (function) pointers to functions
+in these namespaces.
+
+namespace Models contains the price dynamics models. The model parameters are kept as global variables within
+the namespace. Currently,  there are three asset price models: Geometric Brownian Motion,  Constant Elasticity
+of Volatility,  and Heston Stochastic Volatility Models
+
+namespace Payoffs contains the payoff functions. Do note that the call and put payoffs operate on the *state*
+of the last step taken in the discretized path rather than on the asset price of the last step. This is to allow
+for flexibility. What the put/call functions in namespace Payoffs do is apply the broadest definition of a
+European call or put. However,  one is not restricted to "traditional" payoff functions. Any payoff function
+one can think of can be implemented. A binary bet on the terminal volatility of the underlying
+asset is included as an example.
+
+namespace Exotics contains the functions that determine the "state" of a step in the simulated path. When looking
+at a vanilla option,  the state is simply the underlying asset's price. When looking at an arithmetic Asian option, 
+however,  the variable of interest is the arithmetic average of the underlying asset's prices and thus,  that is 
+the state we which to keep track of. Despite this difference, a plain vanilla call and an arithmetic Asian call 
+have the same payoff function if one considers that the payoff is max(state-strike,  0). Exotics is distinguished
+from namespace Payoffs. StepData,  a fundamental data structure of this project,  allows for a (theoretically) 
+unlimited number of state variables. Very complex options can be modelled by simply writing the appropriate
+function in namespace Exotics to keep track of all the state variables. For example, a look-back option
+can very easily and quickly be implemented by simply adding a function that keeps track of the maximum price in step.state[0];
+
+It might be more practical to use functors rather than functions in namespaces Models and Exotics,  especially if
+these grow in complexity and require many parameters (eg: multi-stage barrier options)
+
+
+pricer.cpp is the "front-end" to this simulator,  allowing the user to chose among different
+price dynamics models and payoff functions. As the list of available models and option varieties
+grows,  it will become necessary to write a GUI or a better CLI.
+
+Plans for future development are the following: 
+-> massive parallelization using CUDA
+-> multi-factor simulation
+-> interest rate models
+-> creating a calibration module to determine model parameters
+
